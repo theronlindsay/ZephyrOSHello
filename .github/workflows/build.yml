@@ -7,17 +7,26 @@ on:
 jobs:
   flatpak:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/andyholmes/flatter/gnome:48
+      options: --privileged
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+
+    - name: Setup GPG
+      id: gpg
+      uses: crazy-max/ghaction-import-gpg@v6
+      with:
+        gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
 
     - name: Build and Deploy
       uses: andyholmes/flatter@v1
       with:
         files: |
           buzz.zephyros.hello.json
-        gpg-sign: ${{ secrets.GPG_PRIVATE_KEY }}
+        gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
         upload-pages-artifact: true # Prepares the repo for GitHub Pages
         
   deploy:
