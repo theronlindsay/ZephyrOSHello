@@ -49,7 +49,6 @@ jobs:
             --install-deps-from=flathub
           arch: ${{ matrix.arch }}
           gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
-          flatpak-build-update-repo-args: --gpg-sign=${{ steps.gpg.outputs.fingerprint }}
           upload-bundles: true
           upload-pages-artifact: true
           upload-pages-includes: |
