@@ -38,7 +38,7 @@ jobs:
       # Generate a CNAME file on-the-fly for a configured host
       - name: Generate CNAME
         run: |
-          echo "theronlindsay.dev/ZephyrOSHello" > CNAME
+          echo "repo.zephyros.buzz" > CNAME
 
       - name: Build
         uses: andyholmes/flatter@main
@@ -53,8 +53,7 @@ jobs:
           upload-pages-artifact: true
           upload-pages-includes: |
             CNAME
-            default.css
-            index.html
+            index.flatpakrepo
 
   # See "Github Pages" below
   deploy:
