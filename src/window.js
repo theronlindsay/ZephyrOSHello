@@ -22,12 +22,12 @@ import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 import Gio from 'gi://Gio';
 import Adw from 'gi://Adw';
+import GLib from 'gi://GLib';
 
 export const ZephyroshelloWindow = GObject.registerClass({
     GTypeName: 'ZephyroshelloWindow',
     Template: 'resource:///buzz/zephyros/hello/window.ui',
-    InternalChildren: ['label'],
-    InternalChildren: ['hibernate']
+    InternalChildren: ['label', 'hibernate', 'autostart_switch'],
 }, class ZephyroshelloWindow extends Adw.ApplicationWindow {
 
 
@@ -42,9 +42,85 @@ export const ZephyroshelloWindow = GObject.registerClass({
 
         // Add the action to the window
         this.add_action(action);
+
+        this._setupAutostart();
     }
 
-
+        _setupAutostart() {
+            const appId = 'buzz.zephyros.hello';
+            
+            // We use flatpak-spawn --host to check for the file on the host
+            // Since we can't easily query the host filesystem directly with Gio.File
+            // without proper permissions, we'll use a shell command.
+            let checkArgv = ['flatpak-spawn', '--host', 'test', '-f', 
+                             GLib.build_filenamev([GLib.get_home_dir(), '.config', 'autostart', `${appId}.desktop`])];
+            
+            try {
+                let [res, status] = GLib.spawn_sync(null, checkArgv, null, GLib.SpawnFlags.SEARCH_PATH, null);
+                this._autostart_switch.active = (status === 0);
+            } catch (e) {
+                console.error(`Failed to check autostart status on host: ${e.message}`);
+                this._autostart_switch.active = false;
+            }
+    
+            const appIdConfig = 'buzz.zephyros.hello';
+            const configDir = GLib.build_filenamev([GLib.get_user_config_dir(), appIdConfig]);
+            const markerPath = GLib.build_filenamev([configDir, 'autostart-initialized']);
+            const markerFile = Gio.File.new_for_path(markerPath);
+    
+            if (!markerFile.query_exists(null)) {
+                // First run: Default state is ON
+                this._autostart_switch.active = true;
+                this._updateAutostart(true);
+                try {
+                    GLib.mkdir_with_parents(configDir, 0o755);
+                    const stream = markerFile.create(Gio.FileCreateFlags.NONE, null);
+                    if (stream) {
+                        stream.close(null);
+                    }
+                } catch (e) {
+                    // Ignore error if already exists or cannot create
+                }
+            }
+    
+            this._autostart_switch.connect('state-set', (widget, state) => {
+                this._updateAutostart(state);
+                return false;
+            });
+        }
+    
+        _updateAutostart(enabled) {
+            const appId = 'buzz.zephyros.hello';
+            const hostAutostartDir = GLib.build_filenamev([GLib.get_home_dir(), '.config', 'autostart']);
+            const hostAutostartPath = GLib.build_filenamev([hostAutostartDir, `${appId}.desktop`]);
+    
+            if (enabled) {
+                const content = `[Desktop Entry]
+    Type=Application
+    Name=ZephyrOS Hello
+    Exec=buzz.zephyros.hello
+    Icon=buzz.zephyros.hello
+    X-GNOME-Autostart-enabled=true
+    `;
+                // Use flatpak-spawn --host to write the file
+                // We use printf to handle the newline and redirection to create the file
+                let command = `mkdir -p ${hostAutostartDir} && printf '${content.replace(/'/g, "'\\''")}' > ${hostAutostartPath}`;
+                let argv = ['flatpak-spawn', '--host', 'sh', '-c', command];
+    
+                try {
+                    GLib.spawn_async(null, argv, null, GLib.SpawnFlags.SEARCH_PATH, null);
+                } catch (e) {
+                    console.error(`Failed to enable autostart on host: ${e.message}`);
+                }
+            } else {
+                let argv = ['flatpak-spawn', '--host', 'rm', '-f', hostAutostartPath];
+                try {
+                    GLib.spawn_async(null, argv, null, GLib.SpawnFlags.SEARCH_PATH, null);
+                } catch (e) {
+                    console.error(`Failed to disable autostart on host: ${e.message}`);
+                }
+            }
+        }
     _onHibernate() {
         // The command logic goes here
         console.log("Attempting to setup hibernate...");

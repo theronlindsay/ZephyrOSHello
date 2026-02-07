@@ -25,32 +25,58 @@
         </child>
 
         <property name="content">
-          <object class="GtkBox">
-            <property name="orientation">vertical</property>
-            <property name="spacing">12</property>
-            <property name="halign">center</property>
-            <property name="valign">center</property>
-
+          <object class="GtkOverlay">
             <child>
-              <object class="GtkLabel" id="label">
-                <property name="label" translatable="yes">Welcome to ZephyrOS🐲</property>
-                <style>
-                  <class name="title-1"/>
-                </style>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">12</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+
+                <child>
+                  <object class="GtkLabel" id="label">
+                    <property name="label" translatable="yes">Welcome to ZephyrOS🐲</property>
+                    <style>
+                      <class name="title-1"/>
+                    </style>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkButton" id="hibernate">
+                    <property name="label" translatable="yes">Setup Hibernate</property>
+                    <property name="action-name">win.hibernate</property>
+                    <property name="halign">center</property> <style>
+                      <class name="pill"/>
+                      <class name="suggested-action"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
 
-            <child>
-              <object class="GtkButton" id="hibernate">
-                <property name="label" translatable="yes">Setup Hibernate</property>
-                <property name="action-name">win.hibernate</property>
-                <property name="halign">center</property> <style>
-                  <class name="pill"/>
-                  <class name="suggested-action"/>
-                </style>
+            <child type="overlay">
+              <object class="GtkBox">
+                <property name="halign">end</property>
+                <property name="valign">end</property>
+                <property name="margin-bottom">12</property>
+                <property name="margin-end">12</property>
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Run ZephyrOS Hello at Startup</property>
+                    <style>
+                      <class name="caption"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSwitch" id="autostart_switch">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
               </object>
             </child>
-
           </object>
         </property>
       </object>
