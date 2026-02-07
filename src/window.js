@@ -133,7 +133,7 @@ export const ZephyroshelloWindow = GObject.registerClass({
         // 1. Prepare the command (pkexec for root permission)
         // We add 'flatpak-spawn' and '--host' to the start of the command
         let argv = ['flatpak-spawn', '--host', 'pkexec', 'sh', '-c',
-                    'chmod +x /usr/local/sbin/setupHibernate.sh && /usr/local/sbin/setupHibernate.sh'
+                    '/usr/bin/setupHibernate.sh'
                     ];
 
         // 2. Launch it
